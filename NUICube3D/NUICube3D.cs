@@ -11,6 +11,9 @@ namespace FirstBottomRow
     class Program : NUIApplication
     {
         const string resourcePath = /*Tizen.Applications.Application.Current.DirectoryInfo.Resource*/ "/home/seungho/Shared/";
+        private Vector2 pointZ;
+        private Rotation modelRotation = new Rotation();
+
 
         protected override void OnCreate()
         {
@@ -58,6 +61,33 @@ namespace FirstBottomRow
             model.Add(solution);
 
             model.RotateBy(new Radian(new Degree(-40.0f)), new Vector3(1, 1, 1));
+            modelRotation = model.Orientation;
+
+            window.TouchEvent += (s, e) =>
+            {
+                PointStateType state = e.Touch.GetState(0);
+                if(state == PointStateType.Down)
+                {
+                    pointZ = e.Touch.GetScreenPosition(0);
+                }
+                else if(state == PointStateType.Motion)
+                {
+                    Vector2 size = window.Size;
+                    float scaleX = size.Width;
+                    float scaleY = size.Height;
+                    Vector2 point = e.Touch.GetScreenPosition(0);
+
+                    float angle1 = ((pointZ.Y - point.Y) / scaleY);
+                    float angle2 = ((pointZ.X - point.X) / scaleX);
+
+                    Rotation Xrot = new Rotation(new Radian(new Degree(angle1* 200.0f)), Vector3.XAxis);
+                    Rotation Yrot = new Rotation(new Radian(new Degree(angle2* -200.0f)), Vector3.YAxis);
+                    modelRotation = Yrot * Xrot * modelRotation;
+                    model.Orientation = modelRotation;
+
+                    pointZ = point;
+                }
+            };
         }
 
         public void OnKeyEvent(object sender, Window.KeyEventArgs e)
